@@ -22,6 +22,7 @@ let messagesContainer, messageInputArea, messagesDiv, messageInput, sendBtn;
 let chatWithUsername, imageInput, imageBtn;
 let createGroupBtn, createGroupModal, closeGroupModal, submitGroupBtn;
 let groupNameInput, groupDescInput, groupMembersInput;
+let searchInput, searchBtn, searchResults;
 
 // Group management elements
 let groupMenu, groupMenuBtn, groupMenuDropdown;
@@ -43,6 +44,10 @@ let aiMessagesContainer, aiMessageInput, aiSendBtn;
 // ==========================
 // Helper Functions
 // ==========================
+// Message Search Variables
+let allMessages = [];
+let typingTimeout = null;
+
 function showAuthInterface() {
     authContainer.style.display = 'flex';
     messengerContainer.style.display = 'none';
@@ -2102,6 +2107,11 @@ function displayMessage(message, historical = false) {
         return;
     }
 
+    // Store message for search
+    if (!allMessages.some(m => m.id === message.id)) {
+        allMessages.push(message);
+    }
+
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${message.sender_username === currentUser ? 'sent' : 'received'}`;
     msgDiv.dataset.messageId = message.id;
@@ -2136,6 +2146,21 @@ function displayMessage(message, historical = false) {
         }
     }
 
+    // Message actions menu
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'message-actions';
+
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'message-action-btn';
+    pinBtn.textContent = '📌';
+    pinBtn.title = 'Pin message';
+    pinBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePinMessage(msgDiv, message.id);
+    });
+
+    actionsDiv.appendChild(pinBtn);
+
     const reactionButton = document.createElement('button');
     reactionButton.className = 'reaction-button';
     reactionButton.textContent = '😊';
@@ -2147,10 +2172,99 @@ function displayMessage(message, historical = false) {
     msgDiv.appendChild(header);
     msgDiv.appendChild(content);
     msgDiv.appendChild(reactionsDiv);
+    msgDiv.appendChild(actionsDiv);
     msgDiv.appendChild(reactionButton);
 
     messagesDiv.appendChild(msgDiv);
     if (!historical) scrollToBottom();
+}
+
+function togglePinMessage(msgDiv, messageId) {
+    msgDiv.classList.toggle('pinned');
+    const isPinned = msgDiv.classList.contains('pinned');
+
+    if (isPinned) {
+        showNotification('Message pinned!', 'success');
+        // Move pinned message to top
+        messagesDiv.insertBefore(msgDiv, messagesDiv.firstChild);
+    } else {
+        showNotification('Message unpinned', 'info');
+    }
+}
+
+function searchMessages(query) {
+    if (!query || query.trim().length === 0) {
+        searchResults.style.display = 'none';
+        return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const results = allMessages.filter(msg =>
+        msg.message && msg.message.toLowerCase().includes(lowerQuery)
+    );
+
+    if (results.length === 0) {
+        searchResults.innerHTML = '<div class="no-search-results">No messages found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+
+    searchResults.innerHTML = '';
+    results.slice(0, 10).forEach(msg => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+
+        resultItem.innerHTML = `
+            <div class="search-result-user">${msg.sender_username}</div>
+            <div class="search-result-message">${msg.message}</div>
+            <div class="search-result-time">${msg.timestamp}</div>
+        `;
+
+        resultItem.addEventListener('click', () => {
+            highlightMessage(msg.id);
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        });
+
+        searchResults.appendChild(resultItem);
+    });
+
+    searchResults.style.display = 'block';
+}
+
+function highlightMessage(messageId) {
+    const msgElement = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (msgElement) {
+        msgElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        msgElement.style.background = '#fff3cd';
+        setTimeout(() => {
+            msgElement.style.background = '';
+        }, 2000);
+    }
+}
+
+function showTypingIndicator(username) {
+    const existingIndicator = document.getElementById('typing-indicator');
+    if (existingIndicator) return;
+
+    const indicator = document.createElement('div');
+    indicator.id = 'typing-indicator';
+    indicator.className = 'typing-indicator';
+    indicator.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+    `;
+
+    messagesDiv.appendChild(indicator);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
 }
 
 function sendMessage() {
@@ -2497,7 +2611,11 @@ window.addEventListener('DOMContentLoaded', () => {
     chatWithUsername = document.getElementById('chat-with-username');
     imageInput = document.getElementById('image-input');
     imageBtn = document.getElementById('image-btn');
-    
+
+    searchInput = document.getElementById('search-input');
+    searchBtn = document.getElementById('search-btn');
+    searchResults = document.getElementById('search-results');
+
     createGroupBtn = document.getElementById('create-group-btn');
     createGroupModal = document.getElementById('create-group-modal');
     closeGroupModal = document.getElementById('close-group-modal');
@@ -2565,6 +2683,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (generateHighlightsBtn) {
         generateHighlightsBtn.addEventListener('click', generateHighlights);
+    }
+
+    // Search functionality
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            searchMessages(searchInput.value);
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchMessages(searchInput.value);
+            }
+        });
+
+        // Real-time search as user types
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.length > 2) {
+                searchMessages(searchInput.value);
+            } else if (searchInput.value.length === 0) {
+                searchResults.style.display = 'none';
+            }
+        });
     }
 
     const savedToken = localStorage.getItem('authToken');
