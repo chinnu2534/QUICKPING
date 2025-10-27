@@ -1304,30 +1304,35 @@ body {
     color: #000;
 }
 
-/* Reaction Picker */
+/* Reaction Picker - Fixed Position */
 .reaction-picker {
-    position: absolute;
-    top: -40px;
-    left: 0;
+    position: fixed;
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    padding: 5px 10px;
+    border: 2px solid #667eea;
+    border-radius: 25px;
+    padding: 8px 12px;
+    display: none;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    align-items: center;
+}
+
+.reaction-picker.show {
     display: flex;
-    gap: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 100;
 }
 
 .reaction-picker .emoji {
     cursor: pointer;
-    padding: 5px;
+    padding: 6px;
     border-radius: 50%;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+    font-size: 20px;
 }
 
 .reaction-picker .emoji:hover {
     background: #f0f0f0;
+    transform: scale(1.2);
 }
 
 /* Smart Highlights Styles */
@@ -1523,70 +1528,50 @@ body {
     background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, transparent 100%);
 }
 
-.message.pinned::before {
-    content: '📌';
-    position: absolute;
-    top: -8px;
-    right: 10px;
+.message.pinned .message-header::before {
+    content: '📌 ';
     font-size: 14px;
-}
-
-.pin-message-btn {
-    position: absolute;
-    top: -8px;
-    left: 10px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    font-size: 12px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.message:hover .pin-message-btn {
-    display: flex;
-}
-
-.pin-message-btn:hover {
-    background: #ffc107;
-    transform: scale(1.1);
 }
 
 /* Message Actions Menu */
 .message-actions {
     position: absolute;
-    top: -10px;
-    right: 40px;
-    display: none;
+    top: 5px;
+    right: 5px;
+    display: flex;
     gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
 }
 
 .message:hover .message-actions {
-    display: flex;
+    opacity: 1;
 }
 
 .message-action-btn {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid #ddd;
-    border-radius: 12px;
-    width: 28px;
-    height: 28px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .message-action-btn:hover {
-    background: #f0f0f0;
-    transform: scale(1.1);
+    background: #ffc107;
+    transform: scale(1.15);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.message-action-btn.pinned {
+    background: #ffc107;
 }
 
 .highlights-modal {

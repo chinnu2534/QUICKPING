@@ -1533,14 +1533,18 @@ function displayContacts() {
     contacts.forEach(username => {
         const contactItem = document.createElement('div');
         contactItem.className = 'contact-item';
-        
+
+        // Randomly set online/offline for demo (in production, this would come from backend)
+        const isOnline = Math.random() > 0.5;
+
         contactItem.innerHTML = `
             <div class="contact-info">
+                <span class="user-status ${isOnline ? 'online' : 'offline'}"></span>
                 <span class="contact-name">${username}</span>
             </div>
             <button class="contact-highlight-btn" title="Get chat highlights" onclick="event.stopPropagation(); generateChatHighlight('${username}', 'personal')">✨</button>
         `;
-        
+
         contactItem.addEventListener('click', () => selectContact(username, contactItem));
         contactsList.appendChild(contactItem);
     });
@@ -2062,7 +2066,7 @@ function displayConversationHistory(data) {
             return;
         }
     }
-    
+
     if (data.group_id) {
         if (!currentGroup || data.group_id !== currentGroup.id) {
             console.log('History for different group, ignoring');
@@ -2072,7 +2076,10 @@ function displayConversationHistory(data) {
 
     console.log('Displaying conversation history:', data);
     clearMessages();
-    
+
+    // Clear allMessages when switching conversations
+    allMessages = [];
+
     if (data.messages && data.messages.length > 0) {
         addHistorySeparator('--- Conversation History ---');
         data.messages.forEach(msg => {
@@ -2089,7 +2096,7 @@ function displayConversationHistory(data) {
     } else {
         console.log('No messages in history');
     }
-    
+
     scrollToBottom();
 }
 
@@ -2153,41 +2160,43 @@ function displayMessage(message, historical = false) {
     const pinBtn = document.createElement('button');
     pinBtn.className = 'message-action-btn';
     pinBtn.textContent = '📌';
-    pinBtn.title = 'Pin message';
+    pinBtn.title = 'Pin/Unpin message';
     pinBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        togglePinMessage(msgDiv, message.id);
+        togglePinMessage(msgDiv, message.id, pinBtn);
     });
 
-    actionsDiv.appendChild(pinBtn);
-
-    const reactionButton = document.createElement('button');
-    reactionButton.className = 'reaction-button';
-    reactionButton.textContent = '😊';
-    reactionButton.addEventListener('click', (e) => {
+    const reactionBtn = document.createElement('button');
+    reactionBtn.className = 'message-action-btn';
+    reactionBtn.textContent = '😊';
+    reactionBtn.title = 'React to message';
+    reactionBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         showReactionPicker(msgDiv, message.id);
     });
+
+    actionsDiv.appendChild(pinBtn);
+    actionsDiv.appendChild(reactionBtn);
 
     msgDiv.appendChild(header);
     msgDiv.appendChild(content);
     msgDiv.appendChild(reactionsDiv);
     msgDiv.appendChild(actionsDiv);
-    msgDiv.appendChild(reactionButton);
 
     messagesDiv.appendChild(msgDiv);
     if (!historical) scrollToBottom();
 }
 
-function togglePinMessage(msgDiv, messageId) {
+function togglePinMessage(msgDiv, messageId, pinBtn) {
+    const wasPinned = msgDiv.classList.contains('pinned');
     msgDiv.classList.toggle('pinned');
     const isPinned = msgDiv.classList.contains('pinned');
 
     if (isPinned) {
-        showNotification('Message pinned!', 'success');
-        // Move pinned message to top
-        messagesDiv.insertBefore(msgDiv, messagesDiv.firstChild);
+        pinBtn.classList.add('pinned');
+        showNotification('Message pinned! 📌', 'success');
     } else {
+        pinBtn.classList.remove('pinned');
         showNotification('Message unpinned', 'info');
     }
 }
@@ -2318,7 +2327,7 @@ function showReactionPicker(messageDiv, messageId) {
     if (existingPicker) existingPicker.remove();
 
     const picker = document.createElement('div');
-    picker.className = 'reaction-picker';
+    picker.className = 'reaction-picker show';
     picker.innerHTML = `
         <span class="emoji" data-emoji="👍">👍</span>
         <span class="emoji" data-emoji="❤️">❤️</span>
@@ -2326,6 +2335,33 @@ function showReactionPicker(messageDiv, messageId) {
         <span class="emoji" data-emoji="😢">😢</span>
         <span class="emoji" data-emoji="😡">😡</span>
     `;
+
+    // Add to body instead of message div
+    document.body.appendChild(picker);
+
+    // Position picker near the message but fixed to viewport
+    const rect = messageDiv.getBoundingClientRect();
+    const pickerHeight = 50; // Approximate height
+    const pickerWidth = 250; // Approximate width
+
+    // Position above the message if there's space, otherwise below
+    let top = rect.top - pickerHeight - 10;
+    if (top < 0) {
+        top = rect.bottom + 10;
+    }
+
+    // Keep within viewport horizontally
+    let left = rect.left;
+    if (left + pickerWidth > window.innerWidth) {
+        left = window.innerWidth - pickerWidth - 10;
+    }
+    if (left < 10) {
+        left = 10;
+    }
+
+    picker.style.top = `${top}px`;
+    picker.style.left = `${left}px`;
+
     picker.addEventListener('click', (e) => {
         if (e.target.classList.contains('emoji')) {
             sendReaction(messageId, e.target.dataset.emoji);
@@ -2333,11 +2369,16 @@ function showReactionPicker(messageDiv, messageId) {
         }
     });
 
-    messageDiv.appendChild(picker);
-    const rect = messageDiv.getBoundingClientRect();
-    picker.style.top = `${rect.top - picker.offsetHeight - 5}px`;
-    picker.style.left = `${rect.left}px`;
-    picker.style.display = 'flex';
+    // Close picker when clicking outside
+    setTimeout(() => {
+        const closeHandler = (e) => {
+            if (!picker.contains(e.target)) {
+                picker.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        document.addEventListener('click', closeHandler);
+    }, 100);
 }
 
 function hideReactionPicker() {
