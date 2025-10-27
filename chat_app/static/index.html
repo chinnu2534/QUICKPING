@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Messenger</title>
+    <style>
+        /* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Auth Container */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+}
+
+.auth-header h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 1.8em;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e1e1e1;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.auth-switch {
+    text-align: center;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.auth-switch a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background: #ffe6e6;
+    color: #d33;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* Messenger Container */
+.messenger-container {
+    display: flex;
+    height: 100vh;
+    background: #f5f5f5;
+    overflow: visible;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 300px;
+    background: white;
+    border-right: 1px solid #e1e1e1;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #e1e1e1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.current-user {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Contacts and Groups */
+.contacts-section, .groups-section, .available-groups-section {
+    padding: 20px;
+}
+
+.contacts-section h3, .groups-section h3, .available-groups-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.contacts-list, .groups-list, .available-groups-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.contact-item, .group-item {
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contact-item:hover, .group-item:hover {
+    background: #e9ecef;
+    transform: translateX(3px);
+}
+
+.contact-item.active, .group-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-left-color: #ffffff;
+}
+
+/* Contact Highlight Button */
+.contact-highlight-btn {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    color: #667eea;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.contact-highlight-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.05);
+}
+
+.contact-item.active .contact-highlight-btn,
+.group-item.active .contact-highlight-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* Available Groups Styling */
+.available-group-item {
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.available-group-item:hover {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateX(2px);
+}
+
+.group-name {
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.join-group-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.join-group-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.create-group-btn {
+    width: 100%;
+    padding: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.create-group-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+/* Chat Area */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    overflow: visible;
+}
+
+.chat-header {
+    padding: 20px;
+    border-bottom: 1px solid #e1e1e1;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+.chat-with {
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+}
+
+/* Group Menu */
+.group-menu {
+    position: relative;
+    display: none; /* Hidden by default, shown only for groups */
+}
+
+.group-menu-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.group-menu-btn:hover {
+    background: #5a6268;
+}
+
+.group-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    min-width: 160px;
+    z-index: 1000;
+    display: none;
+}
+
+.group-menu-dropdown.show {
+    display: block;
+}
+
+.group-menu-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #eee;
+}
+
+.group-menu-item:last-child {
+    border-bottom: none;
+}
+
+.group-menu-item:hover {
+    background: #f8f9fa;
+}
+
+.group-menu-item.danger {
+    color: #dc3545;
+}
+
+.group-menu-item.danger:hover {
+    background: #f8d7da;
+}
+
+/* Individual Game Buttons */
+.game-buttons-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.game-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.game-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
+}
+
+.game-btn.chess {
+    background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+}
+
+.game-btn.chess:hover {
+    background: linear-gradient(135deg, #5a32a3 0%, #7c3aed 100%);
+    box-shadow: 0 3px 8px rgba(111, 66, 193, 0.3);
+}
+
+.game-btn.trivia {
+    background: linear-gradient(135deg, #fd7e14 0%, #f39c12 100%);
+}
+
+.game-btn.trivia:hover {
+    background: linear-gradient(135deg, #e8660c 0%, #e67e22 100%);
+    box-shadow: 0 3px 8px rgba(253, 126, 20, 0.3);
+}
+
+/* Welcome Screen */
+.welcome-screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.welcome-content {
+    text-align: center;
+    color: #6c757d;
+}
+
+.welcome-content h2 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+/* Messages Container */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.messages {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 15px 18px;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.message.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.message.received {
+    align-self: flex-start;
+    background: white;
+    color: #333;
+    border: 1px solid #e1e1e1;
+    border-bottom-left-radius: 5px;
+}
+
+/* Game Messages */
+.message.game-message {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    border-left: 4px solid #0c5460;
+}
+
+.game-view-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.game-view-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Poll Message Styles */
+.message.poll-message {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-left: 4px solid #155724;
+}
+
+.message.poll-message .message-content {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.poll-view-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.poll-view-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.message-header {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.message-content {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message-reactions {
+    margin-top: 8px;
+    display: flex;
+    gap: 5px;
+}
+
+.reaction-emoji {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.reaction-button {
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 12px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.message:hover .reaction-button {
+    display: flex;
+}
+
+.history-separator {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+}
+
+/* Message Input */
+.message-input-area {
+    padding: 20px;
+    border-top: 1px solid #e1e1e1;
+    background: white;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#message-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #e1e1e1;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#message-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.send-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 60px;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 30px;
+    border: none;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.modal .form-group {
+    margin-bottom: 15px;
+}
+
+.modal input[type="text"], 
+.modal input[type="datetime-local"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.modal input[type="text"]:focus,
+.modal input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.modal input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.modal .auth-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: background-color 0.2s ease;
+    margin-top: 10px;
+}
+
+.modal .auth-btn:hover {
+    background-color: #45a049;
+}
+
+.modal .auth-btn:active {
+    transform: translateY(1px);
+}
+
+/* Game Modal Specific Styles */
+.game-modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+}
+
+.game-modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border: none;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Game Header */
+.game-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    text-align: center;
+}
+
+.game-header h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.game-players {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.game-players .player {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.game-players .player.current-turn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.game-players .vs {
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.game-status {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+/* Game Container */
+.game-container {
+    padding: 30px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Chess Board */
+.chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 0;
+    border: 3px solid #8B4513;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    margin: 20px auto;
+    max-width: 100%;
+}
+
+.chess-square {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+/* Responsive Chess Board for Different Screen Sizes */
+@media (max-width: 1200px) {
+    .chess-board {
+        grid-template-columns: repeat(8, 50px);
+        grid-template-rows: repeat(8, 50px);
+    }
+    
+    .chess-square {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 900px) {
+    .chess-board {
+        grid-template-columns: repeat(8, 45px);
+        grid-template-rows: repeat(8, 45px);
+    }
+    
+    .chess-square {
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chess-board {
+        grid-template-columns: repeat(8, 40px);
+        grid-template-rows: repeat(8, 40px);
+    }
+    
+    .chess-square {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .chess-board {
+        grid-template-columns: repeat(8, 35px);
+        grid-template-rows: repeat(8, 35px);
+    }
+    
+    .chess-square {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+    }
+}
+
+/* Game Modal Responsive Sizing */
+@media (max-width: 1200px) {
+    .game-modal-content {
+        width: 95%;
+        max-width: 700px;
+    }
+}
+
+@media (max-width: 900px) {
+    .game-modal-content {
+        width: 95%;
+        max-width: 600px;
+        margin: 3% auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-modal-content {
+        width: 98%;
+        max-width: none;
+        margin: 2% auto;
+        max-height: 95vh;
+    }
+}
+
+.chess-square.light {
+    background-color: #f0d9b5;
+}
+
+.chess-square.dark {
+    background-color: #b58863;
+}
+
+.chess-square:hover {
+    box-shadow: inset 0 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+.chess-square.selected {
+    box-shadow: inset 0 0 0 3px #007bff;
+    background-color: #007bff !important;
+    color: white;
+}
+
+/* Tic-Tac-Toe Board */
+.tictactoe-board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 3px;
+    background-color: #333;
+    border-radius: 8px;
+    padding: 3px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    margin: 20px auto;
+}
+
+.tictactoe-square {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    color: #333;
+}
+
+.tictactoe-square.clickable {
+    cursor: pointer;
+}
+
+.tictactoe-square.clickable:hover {
+    background-color: #f0f8ff;
+    transform: scale(1.05);
+}
+
+.tictactoe-square.waiting {
+    background-color: #f5f5f5;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.waiting-for-player {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid #2196f3;
+}
+
+.waiting-for-player h4 {
+    color: #1976d2;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.waiting-for-player p {
+    color: #333;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* Enhanced Trivia Styling */
+.answered-notice {
+    background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+    border: 1px solid #28a745;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.answered-notice p {
+    margin: 8px 0;
+    color: #155724;
+}
+
+.answered-notice strong {
+    color: #0d4419;
+}
+
+.answered-players {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(40, 167, 69, 0.3);
+    font-size: 14px;
+}
+
+.trivia-option:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+}
+
+.trivia-option:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.loading-notice {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+    color: #856404;
+    font-weight: bold;
+}
+
+.next-question-btn {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+.next-question-btn:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Trivia Game */
+.trivia-game {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.trivia-scores {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.trivia-scores h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.score-list {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+}
+
+.question-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.trivia-option {
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    text-align: left;
+    color: #333;
+}
+
+.trivia-option:hover:not(:disabled) {
+    border-color: #007bff;
+    background: #f0f8ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+/* Poll Modal Styles */
+.poll-option-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.poll-option-input input {
+    flex: 1;
+}
+
+.remove-option-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.remove-option-btn:hover {
+    background: #c82333;
+}
+
+.add-poll-option-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.add-poll-option-btn:hover {
+    background: #218838;
+}
+
+/* Poll Display Modal */
+.poll-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.poll-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.poll-modal h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.poll-options {
+    margin: 20px 0;
+}
+
+.poll-option {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.poll-option label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.poll-option input {
+    margin-right: 10px;
+}
+
+.vote-count {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.vote-bar {
+    background: #e9ecef;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.vote-progress {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.vote-poll-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+.vote-poll-btn:hover {
+    background: #218838;
+}
+
+.close-poll-details {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close-poll-details:hover {
+    color: #000;
+}
+
+/* Reaction Picker */
+.reaction-picker {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 10px;
+    display: flex;
+    gap: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.reaction-picker .emoji {
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.reaction-picker .emoji:hover {
+    background: #f0f0f0;
+}
+
+/* Smart Highlights Styles */
+.highlights-nav {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.highlights-nav-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.highlights-nav-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-1px);
+}
+
+.highlights-modal {
+    max-width: 800px;
+    width: 95%;
+}
+
+.highlights-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.highlights-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.highlight-item {
+    background: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.highlight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.highlight-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.highlight-name {
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+}
+
+.highlight-type-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.highlight-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.highlight-summary {
+    margin: 15px 0;
+    line-height: 1.6;
+    color: #444;
+    font-size: 14px;
+}
+
+.highlight-topics {
+    margin: 15px 0;
+}
+
+.topics-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.topics-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.topic-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.highlight-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    font-size: 12px;
+    color: #888;
+}
+
+.no-highlights {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.no-highlights h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* AI Assistant Styles */
+.ai-assistant-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.ai-assistant-toggle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-assistant-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+}
+
+.ai-assistant-chat {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e1e1e1;
+}
+
+.ai-assistant-chat.open {
+    display: flex;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ai-assistant-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-assistant-title {
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-assistant-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.ai-assistant-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ai-assistant-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f8f9fa;
+}
+
+.ai-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.ai-message.bot {
+    background: white;
+    color: #333;
+    align-self: flex-start;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 4px;
+}
+
+.ai-message.user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.ai-message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.ai-assistant-input-area {
+    padding: 16px;
+    border-top: 1px solid #e9ecef;
+    background: white;
+}
+
+.ai-input-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.ai-message-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s ease;
+    min-height: 20px;
+    max-height: 80px;
+}
+
+.ai-message-input:focus {
+    border-color: #667eea;
+}
+
+.ai-send-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ai-send-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.ai-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ai-typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    align-self: flex-start;
+    max-width: 85%;
+}
+
+.ai-typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.ai-typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #999;
+    border-radius: 50%;
+    animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.ai-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.ai-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typingDot {
+    0%, 80%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.ai-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.ai-quick-action {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-quick-action:hover {
+    background: #bbdefb;
+    transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .modal-content, .poll-modal-content {
+        margin: 20% auto;
+        width: 95%;
+    }
+    
+    .ai-assistant-chat {
+        width: 320px;
+        height: 450px;
+        bottom: 75px;
+        right: 10px;
+    }
+    
+    .ai-assistant-widget {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .game-modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .chess-board {
+        grid-template-columns: repeat(8, 45px);
+        grid-template-rows: repeat(8, 45px);
+    }
+    
+    .chess-square {
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+    }
+    
+    .tictactoe-board {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+    }
+    
+    .game-buttons-container {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .game-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Scrollbar Styles */
+.messages-container::-webkit-scrollbar,
+.contacts-list::-webkit-scrollbar,
+.groups-list::-webkit-scrollbar,
+.available-groups-list::-webkit-scrollbar,
+.ai-assistant-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track,
+.contacts-list::-webkit-scrollbar-track,
+.groups-list::-webkit-scrollbar-track,
+.available-groups-list::-webkit-scrollbar-track,
+.ai-assistant-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb,
+.contacts-list::-webkit-scrollbar-thumb,
+.groups-list::-webkit-scrollbar-thumb,
+.available-groups-list::-webkit-scrollbar-thumb,
+.ai-assistant-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover,
+.contacts-list::-webkit-scrollbar-thumb:hover,
+.groups-list::-webkit-scrollbar-thumb:hover,
+.available-groups-list::-webkit-scrollbar-thumb:hover,
+.ai-assistant-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+    </style>
+</head>
+<body>
+    <!-- Login/Register Screen -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>💬 Personal Messenger</h1>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <input type="text" id="login-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button id="login-btn" class="auth-btn">Login</button>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" id="show-register">Register here</a>
+                </p>
+                <div id="login-error" class="error-message"></div>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form" style="display: none;">
+                <h2>Register</h2>
+                <div class="form-group">
+                    <input type="text" id="register-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="register-password" placeholder="Password (min 6 chars)" required>
+                </div>
+                <button id="register-btn" class="auth-btn">Register</button>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" id="show-login">Login here</a>
+                </p>
+                <div id="register-error" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Messenger Interface -->
+    <div id="messenger-container" class="messenger-container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <span id="current-user" class="current-user"></span>
+                    <button id="logout-btn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+
+            <!-- Add this after the sidebar-header div -->
+            <div class="highlights-nav">
+                <button id="highlights-nav-btn" class="highlights-nav-btn">
+                    <span>✨</span>
+                    <span>Smart Highlights</span>
+                </button>
+            </div>
+
+            <!-- Contacts Section -->
+            <div class="contacts-section">
+                <h3>Contacts</h3>
+                <div id="contacts-list" class="contacts-list">
+                    <!-- Contacts will be loaded here -->
+                </div>
+            </div>
+
+            <!-- My Groups Section -->
+            <div class="groups-section">
+                <h3>My Groups</h3>
+                <div id="groups-list" class="groups-list">
+                    <!-- Member groups will be loaded here -->
+                </div>
+                <button id="create-group-btn" class="create-group-btn">➕ Create Group</button>
+            </div>
+
+            <!-- Available Groups Section -->
+            <div class="available-groups-section">
+                <h3>Available Groups</h3>
+                <div id="available-groups-list" class="available-groups-list">
+                    <!-- Available groups will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="chat-area">
+            <!-- Chat header -->
+            <div id="chat-header" class="chat-header" style="display: none;">
+                <div class="chat-with">
+                    <span id="chat-with-username"></span>
+                </div>
+                
+                <!-- Container for both menus -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <!-- Group Menu (only shown for groups) -->
+                    <div id="group-menu" class="group-menu">
+                        <button id="group-menu-btn" class="group-menu-btn">⚙️ Options</button>
+                        <div id="group-menu-dropdown" class="group-menu-dropdown">
+                            <div class="group-menu-item" id="create-poll-menu-btn">📊 Create Poll</div>
+                            <div class="group-menu-item" id="add-members-btn">Add Members</div>
+                            <div class="group-menu-item" id="view-members-btn">View Members</div>
+                            <div class="group-menu-item" id="edit-group-btn">Edit Group</div>
+                            <div class="group-menu-item danger" id="leave-group-btn">Leave Group</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Game Buttons (shown for both conversations and groups) -->
+                    <div id="game-buttons" class="game-buttons-container">
+                        <button id="chess-game-btn" class="game-btn chess" onclick="createGame('chess')">
+                            <span>♟️</span>
+                            <span>Chess</span>
+                        </button>
+                        <button id="tictactoe-game-btn" class="game-btn tictactoe" onclick="createGame('tictactoe')">
+                            <span>⭕</span>
+                            <span>Tic-Tac-Toe</span>
+                        </button>
+                        <button id="trivia-game-btn" class="game-btn trivia" onclick="createGame('trivia')">
+                            <span>🧠</span>
+                            <span>Trivia</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome screen -->
+            <div id="welcome-screen" class="welcome-screen">
+                <div class="welcome-content">
+                    <h2>Welcome to Personal Messenger</h2>
+                    <p>Select a contact or group from the sidebar to start a conversation</p>
+                </div>
+            </div>
+
+            <!-- Messages area -->
+            <div id="messages-container" class="messages-container" style="display: none;">
+                <div id="messages" class="messages">
+                    <!-- Messages will appear here -->
+                </div>
+            </div>
+
+            <!-- Message input -->
+            <div id="message-input-area" class="message-input-area" style="display: none;">
+                <div class="input-container">
+                    <!-- Hidden image input -->
+                    <input type="file" id="image-input" accept="image/*" style="display: none;">
+                    <!-- Button to trigger image upload -->
+                    <button id="image-btn" class="send-btn" title="Send Image">📷</button>
+                    
+                    <!-- Text input + send button -->
+                    <input type="text" id="message-input" placeholder="Type your message..." disabled>
+                    <button id="send-btn" class="send-btn" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Creation Modal -->
+    <div id="create-group-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="close-group-modal" class="close">&times;</span>
+            <h2>Create Group</h2>
+            <div class="form-group">
+                <input type="text" id="group-name" placeholder="Group Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="group-description" placeholder="Description (optional)">
+            </div>
+            <div class="form-group">
+                <input type="text" id="group-members" placeholder="Members (comma separated usernames)">
+            </div>
+            <button id="submit-group-btn" class="auth-btn">Create</button>
+        </div>
+    </div>
+
+    <!-- Add Members Modal -->
+    <div id="add-members-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="close-add-members-modal" class="close">&times;</span>
+            <h2>Add Members to Group</h2>
+            <div class="form-group">
+                <input type="text" id="new-members-input" placeholder="Enter usernames (comma separated)">
+            </div>
+            <button id="submit-add-members-btn" class="auth-btn">Add Members</button>
+        </div>
+    </div>
+
+    <!-- View Members Modal -->
+    <div id="view-members-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="close-view-members-modal" class="close">&times;</span>
+            <h2>Group Members</h2>
+            <div id="members-list" style="max-height: 300px; overflow-y: auto;">
+                <!-- Members will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Poll Modal -->
+    <div id="create-poll-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="close-poll-modal" class="close">&times;</span>
+            <h2>Create Poll</h2>
+            <div class="form-group">
+                <input type="text" id="poll-question" placeholder="Poll Question" required>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="allow-multiple-choices">
+                    Allow multiple choices
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="datetime-local" id="poll-expires" placeholder="Expires at (optional)">
+            </div>
+            <div class="form-group">
+                <label>Poll Options:</label>
+                <div id="poll-options-container">
+                    <!-- Poll options will be added here dynamically -->
+                </div>
+                <button type="button" id="add-poll-option-btn" class="add-poll-option-btn">+ Add Option</button>
+            </div>
+            <button id="submit-poll-btn" class="auth-btn">Create Poll</button>
+        </div>
+    </div>
+
+    <!-- Smart Highlights Modal -->
+    <div id="highlights-modal" class="modal" style="display: none;">
+        <div class="modal-content highlights-modal">
+            <span id="close-highlights-modal" class="close">&times;</span>
+            <h2>✨ Smart Highlights</h2>
+            
+            <div class="highlights-controls">
+                <select id="highlights-type">
+                    <option value="daily">Daily Summary</option>
+                    <option value="weekly">Weekly Summary</option>
+                </select>
+                
+                <select id="highlights-target">
+                    <option value="all">All Conversations</option>
+                    <option value="personal">Personal Chats Only</option>
+                </select>
+                
+                <button id="generate-highlights-btn" class="auth-btn">Generate Highlights</button>
+            </div>
+            
+            <div id="highlights-list" class="highlights-list">
+                <!-- Highlights will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-assistant-widget" id="ai-assistant-widget" style="display: none;">
+        <button class="ai-assistant-toggle" id="ai-assistant-toggle">
+            🤖
+        </button>
+        
+        <div class="ai-assistant-chat" id="ai-assistant-chat">
+            <div class="ai-assistant-header">
+                <div class="ai-assistant-title">
+                    <span>🤖</span>
+                    <span>AI Assistant</span>
+                </div>
+                <button class="ai-assistant-close" id="ai-assistant-close">×</button>
+            </div>
+            
+            <div class="ai-assistant-messages" id="ai-assistant-messages">
+                <div class="ai-message bot">
+                    <div>Hello! I'm your AI assistant. I can help you with:</div>
+                    <div class="ai-quick-actions">
+                        <button class="ai-quick-action" onclick="sendQuickMessage('help')">Show help</button>
+                        <button class="ai-quick-action" onclick="sendQuickMessage('recent activity')">Recent activity</button>
+                        <button class="ai-quick-action" onclick="sendQuickMessage('active groups')">Active groups</button>
+                    </div>
+                    <div class="ai-message-time">Just now</div>
+                </div>
+            </div>
+            
+            <div class="ai-assistant-input-area">
+                <div class="ai-input-container">
+                    <textarea class="ai-message-input" id="ai-message-input" 
+                             placeholder="Ask me anything about your chats..." 
+                             rows="1"></textarea>
+                    <button class="ai-send-btn" id="ai-send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="game-modal" class="modal game-modal" style="display: none;">
+        <div class="modal-content game-modal-content">
+            <span id="close-game-modal" class="close">&times;</span>
+            
+            <!-- Game Info Section -->
+            <div id="game-info">
+                <!-- Game header will be dynamically populated -->
+            </div>
+            
+            <!-- Game Container -->
+            <div id="game-container" class="game-container">
+                <div id="game-board">
+                    <!-- Game board will be dynamically populated based on game type -->
+                </div>
+                
+                <!-- Game Controls -->
+                <div id="game-controls" class="game-controls">
+                    <!-- Dynamic controls based on game state -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="static/script.js"></script>
+</body>
+</html>
