@@ -2360,6 +2360,14 @@ body {
             </div>
         </div>
     </div>
-    <script src="static/script.js"></script>
+    <script src="script.js?v=2.0"></script>
+    <script>
+        // Verify features are loaded
+        console.log('=== FEATURE CHECK ===');
+        console.log('Search input:', document.getElementById('search-input') ? 'FOUND' : 'NOT FOUND');
+        console.log('Search button:', document.getElementById('search-btn') ? 'FOUND' : 'NOT FOUND');
+        console.log('Search results:', document.getElementById('search-results') ? 'FOUND' : 'NOT FOUND');
+        console.log('====================');
+    </script>
 </body>
 </html>

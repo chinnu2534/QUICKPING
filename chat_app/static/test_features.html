@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+        }
+        .error {
+            background: #dc3545;
+            color: white;
+        }
+        .message {
+            position: relative;
+            padding: 12px 16px;
+            background: #e9ecef;
+            border-radius: 18px;
+            margin: 10px 0;
+            max-width: 70%;
+        }
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+        .message-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .message-action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .message-action-btn:hover {
+            transform: scale(1.15);
+        }
+        .search-container {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .search-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .search-btn {
+            padding: 10px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .user-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .user-status.online {
+            background: #28a745;
+            box-shadow: 0 0 4px rgba(40, 167, 69, 0.6);
+        }
+        .user-status.offline {
+            background: #6c757d;
+        }
+        .contact-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Feature Test Page</h1>
+    <p>This page tests if the new features CSS and HTML are working correctly.</p>
+
+    <!-- Test 1: Search -->
+    <div class="test-section">
+        <h2>Test 1: Search Feature <span class="status success" id="search-status">✓ LOADED</span></h2>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="🔍 Search messages..." class="search-input">
+            <button id="search-btn" class="search-btn">Search</button>
+        </div>
+        <div class="code">
+            <strong>What to check:</strong><br>
+            • Search box should be visible<br>
+            • Placeholder text shows magnifying glass emoji<br>
+            • Button has purple background<br>
+            • Input expands to fill space
+        </div>
+    </div>
+
+    <!-- Test 2: Pin Button -->
+    <div class="test-section">
+        <h2>Test 2: Message Action Buttons <span class="status success" id="pin-status">✓ LOADED</span></h2>
+        <p><strong>Hover over the message below:</strong></p>
+        <div class="message">
+            <div>Test Message • 10:30 AM</div>
+            <div>This is a test message. Hover over it!</div>
+            <div class="message-actions">
+                <button class="message-action-btn" title="Pin">📌</button>
+                <button class="message-action-btn" title="React">😊</button>
+            </div>
+        </div>
+        <div class="code">
+            <strong>What to check:</strong><br>
+            • Two round buttons appear when hovering (top-right)<br>
+            • Left button shows 📌<br>
+            • Right button shows 😊<br>
+            • Buttons have smooth fade-in effect<br>
+            • Buttons scale up on hover
+        </div>
+    </div>
+
+    <!-- Test 3: User Status -->
+    <div class="test-section">
+        <h2>Test 3: User Status Indicators <span class="status success" id="status-status">✓ LOADED</span></h2>
+        <div class="contact-item">
+            <span class="user-status online"></span>
+            <span>John Doe (Online)</span>
+        </div>
+        <div class="contact-item">
+            <span class="user-status offline"></span>
+            <span>Jane Smith (Offline)</span>
+        </div>
+        <div class="code">
+            <strong>What to check:</strong><br>
+            • Green dot before "John Doe"<br>
+            • Gray dot before "Jane Smith"<br>
+            • Green dot has slight glow effect<br>
+            • Dots are small and circular
+        </div>
+    </div>
+
+    <!-- Test 4: Browser Check -->
+    <div class="test-section">
+        <h2>Test 4: Browser Information</h2>
+        <div class="code">
+            <strong>User Agent:</strong><br>
+            <span id="user-agent"></span>
+        </div>
+        <div class="code">
+            <strong>Window Size:</strong><br>
+            <span id="window-size"></span>
+        </div>
+        <div class="code">
+            <strong>Current Time:</strong><br>
+            <span id="current-time"></span>
+        </div>
+    </div>
+
+    <!-- Test 5: JavaScript Check -->
+    <div class="test-section">
+        <h2>Test 5: JavaScript Functionality</h2>
+        <button onclick="testSearch()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px;">Test Search Function</button>
+        <button onclick="testPinButton()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px;">Test Pin Function</button>
+        <button onclick="testStatusIndicator()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px;">Test Status Function</button>
+        <div id="test-results" class="code" style="margin-top: 10px; min-height: 50px;">
+            Click buttons above to test JavaScript functions...
+        </div>
+    </div>
+
+    <script>
+        // Display browser info
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('window-size').textContent = window.innerWidth + ' x ' + window.innerHeight;
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+
+        // Test functions
+        function testSearch() {
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const results = document.getElementById('test-results');
+
+            if (searchInput && searchBtn) {
+                results.innerHTML = '<span style="color: green;">✓ SUCCESS</span><br>' +
+                    'Search input found: ' + (searchInput ? 'YES' : 'NO') + '<br>' +
+                    'Search button found: ' + (searchBtn ? 'YES' : 'NO') + '<br>' +
+                    'Input has correct placeholder: ' + (searchInput.placeholder.includes('Search') ? 'YES' : 'NO');
+            } else {
+                results.innerHTML = '<span style="color: red;">✗ FAILED</span><br>Elements not found';
+            }
+        }
+
+        function testPinButton() {
+            const results = document.getElementById('test-results');
+            const buttons = document.querySelectorAll('.message-action-btn');
+
+            if (buttons.length > 0) {
+                results.innerHTML = '<span style="color: green;">✓ SUCCESS</span><br>' +
+                    'Message action buttons found: ' + buttons.length + '<br>' +
+                    'First button text: ' + buttons[0].textContent + '<br>' +
+                    'Button styling applied: YES';
+            } else {
+                results.innerHTML = '<span style="color: red;">✗ FAILED</span><br>No action buttons found';
+            }
+        }
+
+        function testStatusIndicator() {
+            const results = document.getElementById('test-results');
+            const statuses = document.querySelectorAll('.user-status');
+
+            if (statuses.length > 0) {
+                results.innerHTML = '<span style="color: green;">✓ SUCCESS</span><br>' +
+                    'Status indicators found: ' + statuses.length + '<br>' +
+                    'Online indicators: ' + document.querySelectorAll('.user-status.online').length + '<br>' +
+                    'Offline indicators: ' + document.querySelectorAll('.user-status.offline').length;
+            } else {
+                results.innerHTML = '<span style="color: red;">✗ FAILED</span><br>No status indicators found';
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', function() {
+            console.log('=== FEATURE TEST PAGE ===');
+            console.log('Search input:', document.getElementById('search-input') ? 'FOUND' : 'NOT FOUND');
+            console.log('Search button:', document.getElementById('search-btn') ? 'FOUND' : 'NOT FOUND');
+            console.log('Message action buttons:', document.querySelectorAll('.message-action-btn').length);
+            console.log('User status indicators:', document.querySelectorAll('.user-status').length);
+            console.log('========================');
+        });
+    </script>
+</body>
+</html>

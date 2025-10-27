@@ -2183,6 +2183,13 @@ function displayMessage(message, historical = false) {
     msgDiv.appendChild(reactionsDiv);
     msgDiv.appendChild(actionsDiv);
 
+    // Debug: Log that we added action buttons
+    console.log('Message created with action buttons:', {
+        messageId: message.id,
+        hasActions: !!actionsDiv,
+        actionButtons: actionsDiv.children.length
+    });
+
     messagesDiv.appendChild(msgDiv);
     if (!historical) scrollToBottom();
 }
@@ -2656,6 +2663,12 @@ window.addEventListener('DOMContentLoaded', () => {
     searchInput = document.getElementById('search-input');
     searchBtn = document.getElementById('search-btn');
     searchResults = document.getElementById('search-results');
+
+    console.log('Search elements initialized:', {
+        searchInput: !!searchInput,
+        searchBtn: !!searchBtn,
+        searchResults: !!searchResults
+    });
 
     createGroupBtn = document.getElementById('create-group-btn');
     createGroupModal = document.getElementById('create-group-modal');
