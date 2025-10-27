@@ -2031,6 +2031,18 @@ function connectWebSocket() {
                     const arrayBuffer = await pendingFile.arrayBuffer();
                     socket.send(arrayBuffer);
                     pendingFile = null;
+                } else if (data.type === 'reaction_added') {
+                    handleReactionAdded(data);
+                } else if (data.type === 'reaction_removed') {
+                    handleReactionRemoved(data);
+                } else if (data.type === 'message_pinned') {
+                    handleMessagePinned(data);
+                } else if (data.type === 'message_unpinned') {
+                    handleMessageUnpinned(data);
+                } else if (data.type === 'reactions_list') {
+                    handleReactionsList(data);
+                } else if (data.type === 'pinned_messages_list') {
+                    handlePinnedMessagesList(data);
                 } else {
                     console.log('Message not handled:', data);
                 }
@@ -2096,6 +2108,9 @@ function displayConversationHistory(data) {
     } else {
         console.log('No messages in history');
     }
+
+    // Load pinned messages for this conversation
+    loadPinnedMessages();
 
     scrollToBottom();
 }
@@ -2192,19 +2207,28 @@ function displayMessage(message, historical = false) {
 
     messagesDiv.appendChild(msgDiv);
     if (!historical) scrollToBottom();
+
+    // Load reactions and pin status for this message
+    if (message.id) {
+        loadReactionsForMessage(message.id);
+    }
 }
 
 function togglePinMessage(msgDiv, messageId, pinBtn) {
     const wasPinned = msgDiv.classList.contains('pinned');
-    msgDiv.classList.toggle('pinned');
-    const isPinned = msgDiv.classList.contains('pinned');
 
-    if (isPinned) {
-        pinBtn.classList.add('pinned');
-        showNotification('Message pinned! 📌', 'success');
-    } else {
-        pinBtn.classList.remove('pinned');
-        showNotification('Message unpinned', 'info');
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        if (wasPinned) {
+            socket.send(JSON.stringify({
+                type: 'unpin_message',
+                message_id: messageId
+            }));
+        } else {
+            socket.send(JSON.stringify({
+                type: 'pin_message',
+                message_id: messageId
+            }));
+        }
     }
 }
 
@@ -2397,7 +2421,142 @@ function hideReactionPicker() {
 
 function sendReaction(messageId, emoji) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: 'reaction', message_id: messageId, reaction: emoji }));
+        socket.send(JSON.stringify({
+            type: 'add_reaction',
+            message_id: messageId,
+            emoji: emoji
+        }));
+    }
+}
+
+function handleReactionAdded(data) {
+    const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+    if (!messageDiv) return;
+
+    let reactionsDiv = messageDiv.querySelector('.message-reactions');
+    if (!reactionsDiv) {
+        reactionsDiv = document.createElement('div');
+        reactionsDiv.className = 'message-reactions';
+        messageDiv.appendChild(reactionsDiv);
+    }
+
+    let emojiSpan = reactionsDiv.querySelector(`[data-emoji="${data.emoji}"]`);
+    if (!emojiSpan) {
+        emojiSpan = document.createElement('span');
+        emojiSpan.className = 'reaction-emoji';
+        emojiSpan.dataset.emoji = data.emoji;
+        emojiSpan.innerHTML = `${data.emoji} <span class="reaction-count">1</span>`;
+        reactionsDiv.appendChild(emojiSpan);
+    } else {
+        const countSpan = emojiSpan.querySelector('.reaction-count');
+        const currentCount = parseInt(countSpan.textContent) || 0;
+        countSpan.textContent = currentCount + 1;
+    }
+
+    showNotification(`${data.username} reacted with ${data.emoji}`, 'info');
+}
+
+function handleReactionRemoved(data) {
+    const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+    if (!messageDiv) return;
+
+    const reactionsDiv = messageDiv.querySelector('.message-reactions');
+    if (!reactionsDiv) return;
+
+    const emojiSpan = reactionsDiv.querySelector(`[data-emoji="${data.emoji}"]`);
+    if (!emojiSpan) return;
+
+    const countSpan = emojiSpan.querySelector('.reaction-count');
+    const currentCount = parseInt(countSpan.textContent) || 0;
+
+    if (currentCount <= 1) {
+        emojiSpan.remove();
+        if (reactionsDiv.children.length === 0) {
+            reactionsDiv.remove();
+        }
+    } else {
+        countSpan.textContent = currentCount - 1;
+    }
+}
+
+function handleMessagePinned(data) {
+    const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+    if (messageDiv) {
+        messageDiv.classList.add('pinned');
+        const pinBtn = messageDiv.querySelector('.message-action-btn');
+        if (pinBtn && pinBtn.textContent === '📌') {
+            pinBtn.classList.add('pinned');
+        }
+    }
+    showNotification('Message pinned! 📌', 'success');
+}
+
+function handleMessageUnpinned(data) {
+    const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+    if (messageDiv) {
+        messageDiv.classList.remove('pinned');
+        const pinBtn = messageDiv.querySelector('.message-action-btn');
+        if (pinBtn && pinBtn.textContent === '📌') {
+            pinBtn.classList.remove('pinned');
+        }
+    }
+    showNotification('Message unpinned', 'info');
+}
+
+function handleReactionsList(data) {
+    const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+    if (!messageDiv) return;
+
+    let reactionsDiv = messageDiv.querySelector('.message-reactions');
+    if (reactionsDiv) reactionsDiv.remove();
+
+    if (Object.keys(data.reactions).length > 0) {
+        reactionsDiv = document.createElement('div');
+        reactionsDiv.className = 'message-reactions';
+
+        for (const [emoji, users] of Object.entries(data.reactions)) {
+            const emojiSpan = document.createElement('span');
+            emojiSpan.className = 'reaction-emoji';
+            emojiSpan.dataset.emoji = emoji;
+            emojiSpan.innerHTML = `${emoji} <span class="reaction-count">${users.length}</span>`;
+            emojiSpan.title = `Reacted by: ${users.join(', ')}`;
+            reactionsDiv.appendChild(emojiSpan);
+        }
+
+        messageDiv.appendChild(reactionsDiv);
+    }
+}
+
+function handlePinnedMessagesList(data) {
+    console.log('Pinned messages:', data.pinned_messages);
+
+    // Mark all pinned messages in the UI
+    data.pinned_messages.forEach(pinInfo => {
+        const messageDiv = document.querySelector(`[data-message-id="${pinInfo.message_id}"]`);
+        if (messageDiv) {
+            messageDiv.classList.add('pinned');
+            const pinBtn = messageDiv.querySelector('.message-action-btn');
+            if (pinBtn && pinBtn.textContent === '📌') {
+                pinBtn.classList.add('pinned');
+            }
+        }
+    });
+}
+
+function loadReactionsForMessage(messageId) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'get_reactions',
+            message_id: messageId
+        }));
+    }
+}
+
+function loadPinnedMessages() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'get_pinned_messages'
+        }));
     }
 }
 

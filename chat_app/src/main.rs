@@ -864,6 +864,30 @@ async fn main() {
             created_at TEXT NOT NULL
         )"
     ).execute(&pool).await;
+
+    // Create message reactions table
+    let _ = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS message_reactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            emoji TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(message_id, username, emoji)
+        )"
+    ).execute(&pool).await;
+
+    // Create pinned messages table
+    let _ = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS pinned_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id INTEGER NOT NULL,
+            pinned_by TEXT NOT NULL,
+            pinned_at TEXT NOT NULL,
+            UNIQUE(message_id)
+        )"
+    ).execute(&pool).await;
+
     initialize_games(&pool).await;
 
     async fn initialize_games(pool: &SqlitePool) {
@@ -2392,6 +2416,223 @@ async fn handle_websocket(
         } else {
             println!("DEBUG: Game {} not found", game_id);
         }
+    }
+}
+
+"add_reaction" => {
+    if let (Some(message_id), Some(emoji)) = (incoming_msg.message_id, incoming_msg.emoji.as_ref()) {
+        let timestamp = Utc::now().to_rfc3339();
+
+        // Add reaction to database
+        let result = sqlx::query(
+            "INSERT OR IGNORE INTO message_reactions (message_id, username, emoji, created_at)
+             VALUES (?, ?, ?, ?)"
+        )
+        .bind(message_id)
+        .bind(&username_clone)
+        .bind(emoji)
+        .bind(&timestamp)
+        .execute(&pool_incoming)
+        .await;
+
+        if result.is_ok() {
+            // Broadcast reaction to all connected users
+            let reaction_msg = serde_json::json!({
+                "type": "reaction_added",
+                "message_id": message_id,
+                "username": username_clone,
+                "emoji": emoji
+            });
+
+            if let Ok(json) = serde_json::to_string(&reaction_msg) {
+                let users_lock = users_incoming.lock().await;
+                for user in users_lock.values() {
+                    let _ = user.sender.send(ChatMessage {
+                        id: 0,
+                        group_id: None,
+                        sender_username: "system".to_string(),
+                        receiver_username: "".to_string(),
+                        message: json.clone(),
+                        timestamp: timestamp.clone(),
+                        reactions: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+"remove_reaction" => {
+    if let (Some(message_id), Some(emoji)) = (incoming_msg.message_id, incoming_msg.emoji.as_ref()) {
+        // Remove reaction from database
+        let result = sqlx::query(
+            "DELETE FROM message_reactions WHERE message_id = ? AND username = ? AND emoji = ?"
+        )
+        .bind(message_id)
+        .bind(&username_clone)
+        .bind(emoji)
+        .execute(&pool_incoming)
+        .await;
+
+        if result.is_ok() {
+            // Broadcast reaction removal to all connected users
+            let reaction_msg = serde_json::json!({
+                "type": "reaction_removed",
+                "message_id": message_id,
+                "username": username_clone,
+                "emoji": emoji
+            });
+
+            if let Ok(json) = serde_json::to_string(&reaction_msg) {
+                let users_lock = users_incoming.lock().await;
+                for user in users_lock.values() {
+                    let _ = user.sender.send(ChatMessage {
+                        id: 0,
+                        group_id: None,
+                        sender_username: "system".to_string(),
+                        receiver_username: "".to_string(),
+                        message: json.clone(),
+                        timestamp: Utc::now().to_rfc3339(),
+                        reactions: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+"pin_message" => {
+    if let Some(message_id) = incoming_msg.message_id {
+        let timestamp = Utc::now().to_rfc3339();
+
+        // Add pin to database
+        let result = sqlx::query(
+            "INSERT OR IGNORE INTO pinned_messages (message_id, pinned_by, pinned_at)
+             VALUES (?, ?, ?)"
+        )
+        .bind(message_id)
+        .bind(&username_clone)
+        .bind(&timestamp)
+        .execute(&pool_incoming)
+        .await;
+
+        if result.is_ok() {
+            // Broadcast pin to all connected users
+            let pin_msg = serde_json::json!({
+                "type": "message_pinned",
+                "message_id": message_id,
+                "pinned_by": username_clone
+            });
+
+            if let Ok(json) = serde_json::to_string(&pin_msg) {
+                let users_lock = users_incoming.lock().await;
+                for user in users_lock.values() {
+                    let _ = user.sender.send(ChatMessage {
+                        id: 0,
+                        group_id: None,
+                        sender_username: "system".to_string(),
+                        receiver_username: "".to_string(),
+                        message: json.clone(),
+                        timestamp: timestamp.clone(),
+                        reactions: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+"unpin_message" => {
+    if let Some(message_id) = incoming_msg.message_id {
+        // Remove pin from database
+        let result = sqlx::query(
+            "DELETE FROM pinned_messages WHERE message_id = ?"
+        )
+        .bind(message_id)
+        .execute(&pool_incoming)
+        .await;
+
+        if result.is_ok() {
+            // Broadcast unpin to all connected users
+            let unpin_msg = serde_json::json!({
+                "type": "message_unpinned",
+                "message_id": message_id
+            });
+
+            if let Ok(json) = serde_json::to_string(&unpin_msg) {
+                let users_lock = users_incoming.lock().await;
+                for user in users_lock.values() {
+                    let _ = user.sender.send(ChatMessage {
+                        id: 0,
+                        group_id: None,
+                        sender_username: "system".to_string(),
+                        receiver_username: "".to_string(),
+                        message: json.clone(),
+                        timestamp: Utc::now().to_rfc3339(),
+                        reactions: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+"get_reactions" => {
+    if let Some(message_id) = incoming_msg.message_id {
+        // Get all reactions for this message
+        let reactions_rows = sqlx::query(
+            "SELECT username, emoji FROM message_reactions WHERE message_id = ?"
+        )
+        .bind(message_id)
+        .fetch_all(&pool_incoming)
+        .await
+        .unwrap_or_default();
+
+        let mut reactions: HashMap<String, Vec<String>> = HashMap::new();
+        for row in reactions_rows {
+            let emoji: String = row.get("emoji");
+            let username: String = row.get("username");
+            reactions.entry(emoji).or_insert_with(Vec::new).push(username);
+        }
+
+        let reactions_msg = serde_json::json!({
+            "type": "reactions_list",
+            "message_id": message_id,
+            "reactions": reactions
+        });
+
+        if let Ok(json) = serde_json::to_string(&reactions_msg) {
+            let mut ws_tx_lock = ws_tx_for_incoming.lock().await;
+            let _ = ws_tx_lock.send(Message::text(json)).await;
+        }
+    }
+}
+
+"get_pinned_messages" => {
+    // Get all pinned message IDs
+    let pinned_rows = sqlx::query(
+        "SELECT message_id, pinned_by, pinned_at FROM pinned_messages ORDER BY pinned_at DESC"
+    )
+    .fetch_all(&pool_incoming)
+    .await
+    .unwrap_or_default();
+
+    let pinned_messages: Vec<serde_json::Value> = pinned_rows.iter().map(|row| {
+        serde_json::json!({
+            "message_id": row.get::<i64, _>("message_id"),
+            "pinned_by": row.get::<String, _>("pinned_by"),
+            "pinned_at": row.get::<String, _>("pinned_at")
+        })
+    }).collect();
+
+    let pinned_msg = serde_json::json!({
+        "type": "pinned_messages_list",
+        "pinned_messages": pinned_messages
+    });
+
+    if let Ok(json) = serde_json::to_string(&pinned_msg) {
+        let mut ws_tx_lock = ws_tx_for_incoming.lock().await;
+        let _ = ws_tx_lock.send(Message::text(json)).await;
     }
 }
 
